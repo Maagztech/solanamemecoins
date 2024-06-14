@@ -61,7 +61,7 @@ async function scrapeData() {
                     }
                 }
 
-                if (nextButton) {// Capture initial page content
+                if (nextButton) {
                     await nextButton.click();
                     await page.waitForSelector('.max-h-\\[300px\\].overflow-hidden.h-fit.p-2.flex.border.border-transparent.hover\\:border-white.gap-2.w-full');
                     await new Promise(resolve => setTimeout(resolve, 10000));
@@ -79,7 +79,7 @@ async function scrapeData() {
     let previousPageResults = [];
     let pageCount = 0;
 
-    while (pageCount < 23) {
+    while (pageCount < 2) {
         const pageResults = await scrapePage();
 
         const isSamePage = JSON.stringify(pageResults) === JSON.stringify(previousPageResults);
@@ -102,9 +102,12 @@ async function scrapeData() {
 
 async function insertDataToDB(data) {
     try {
-        // Create the table if it does not exist
+        await connection.execute(`DROP TABLE IF EXISTS memecoinsList`);
+        console.log('Table memecoinsList dropped successfully.');
+
         await connection.execute(`CREATE TABLE IF NOT EXISTS memecoinsList (
-            id VARCHAR(255) PRIMARY KEY,
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            caValue VARCHAR(255),
             img VARCHAR(255),
             creator VARCHAR(255),
             marketCap VARCHAR(255),
@@ -112,18 +115,23 @@ async function insertDataToDB(data) {
             description TEXT,
             message TEXT
         )`);
+        console.log('Table memecoinsList created or already exists.');
 
-        // Insert data into the table
-        const insertQuery = `INSERT INTO memecoinsList (id, img, creator, marketCap, replies, description, message) VALUES (?, ?, ?, ?, ?, ?, ?)`;
+        const insertQuery = `INSERT INTO memecoinsList (caValue, img, creator, marketCap, replies, description, message) VALUES (?, ?, ?, ?, ?, ?, ?)`;
 
         for (const item of data) {
-            await connection.execute(insertQuery, [item.caValue, item.img, item.creator, item.marketCap, item.replies, item.description, item.message]);
-            console.log('Inserted data:', item);
+            try {
+                await connection.execute(insertQuery, [item.caValue, item.img, item.creator, item.marketCap, item.replies, item.description, item.message]);
+                console.log(`Inserted data with caValue ${item.caValue} into database.`);
+            } catch (error) {
+                console.error(`Error processing item with caValue ${item.caValue}:`, error);
+            }
         }
     } catch (error) {
         console.error('Error inserting data:', error);
     }
 }
+
 
 
 async function performFunction(req, res) {
