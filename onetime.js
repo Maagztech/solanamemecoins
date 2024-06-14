@@ -23,7 +23,7 @@ async function scrapeData() {
         let previousPageResults = [];
         let pageCount = 1;
 
-        while (pageCount < 3) {
+        while (pageCount < 23) {
             const pageResults = await scrapePage(page);
             const isSamePage = JSON.stringify(pageResults) === JSON.stringify(previousPageResults);
             
