@@ -1,12 +1,18 @@
 const express = require('express');
 const router = express.Router();
-
-// Import the function to be called when the API is hit
-const { performFunction } = require('./onetime'); // Adjust the path as necessary
+const { insertDataToDB } = require('./database');
+const { scrapeData } = require('./onetime'); 
 const { realTimeData } = require('./realtimescrap');
 // Define an API endpoint
-router.get('/creatememetable', (req, res) => {
-    performFunction(req, res);
+router.get('/creatememetable', async (req, res) => {
+    try {
+        const data = await scrapeData();
+        const rowCount = await insertDataToDB(data);
+        res.status(200).json({ rowCount });
+    } catch (error) {
+        console.error('Error performing scraping and insertion:', error);
+        res.status(500).send('An error occurred while performing scraping and insertion.');
+    }
 });
 
 router.get('/coindeatils', (req, res) => {
