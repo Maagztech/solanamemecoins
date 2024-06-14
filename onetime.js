@@ -115,7 +115,7 @@ async function insertDataToDB(data) {
             description TEXT,
             message TEXT
         )`);
-        console.log('Table memecoinsList created or already exists.');
+        console.log('Table memecoinsList created');
 
         const insertQuery = `INSERT INTO memecoinsList (caValue, img, creator, marketCap, replies, description, message) VALUES (?, ?, ?, ?, ?, ?, ?)`;
 
