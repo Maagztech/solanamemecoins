@@ -1,10 +1,12 @@
 const puppeteer = require('puppeteer');
 const { insertDataToDB } = require('./database');
+const createCsvWriter = require('csv-writer').createObjectCsvWriter;
+const path = require('path');
 
 async function scrapeData() {
     const browser = await puppeteer.launch({ headless: false });
     const page = await browser.newPage();
-    
+
     try {
         await page.goto('https://pump.fun/board', { waitUntil: 'networkidle2', timeout: 60000 });
         await page.waitForSelector('.md\\:grid.flex.flex-wrap.text-sm.md\\:gap-1.gap-4', { timeout: 60000 });
@@ -23,10 +25,10 @@ async function scrapeData() {
         let previousPageResults = [];
         let pageCount = 1;
 
-        while (pageCount < 23) {
+        while (pageCount < 2) {
             const pageResults = await scrapePage(page);
             const isSamePage = JSON.stringify(pageResults) === JSON.stringify(previousPageResults);
-            
+
             if (isSamePage) {
                 console.log('No new elements found. Stopping.');
                 break;
@@ -53,6 +55,9 @@ async function scrapeData() {
         }
 
         await insertDataToDB(uniqueResults);
+
+        // Save results to CSV
+        await saveResultsToCSV(uniqueResults);
 
         return uniqueResults;
     } catch (error) {
@@ -125,6 +130,24 @@ async function clickNext(page) {
     }
 
     return false;
+}
+
+async function saveResultsToCSV(results) {
+    const csvWriter = createCsvWriter({
+        path: path.join(__dirname, 'scraped_results.csv'),
+        header: [
+            { id: 'caValue', title: 'CA Value' },
+            { id: 'img', title: 'Image URL' },
+            { id: 'creator', title: 'Creator' },
+            { id: 'marketCap', title: 'Market Cap' },
+            { id: 'replies', title: 'Replies' },
+            { id: 'description', title: 'Description' },
+            { id: 'message', title: 'Message' }
+        ]
+    });
+
+    await csvWriter.writeRecords(results);
+    console.log('Results saved to CSV file.');
 }
 
 module.exports = {

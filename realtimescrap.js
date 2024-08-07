@@ -1,7 +1,7 @@
 const puppeteer = require('puppeteer');
 async function realTimeData(req, res) {
     try {
-        const browser = await puppeteer.launch({ headless: true });
+        const browser = await puppeteer.launch({ headless: false });
         const page = await browser.newPage();
 
         // Navigate to the webpage
@@ -173,29 +173,29 @@ async function realTimeData(req, res) {
         });
 
         // Wait for the trade elements to load
-        await page.waitForSelector('.text-xs.my-1.bg-\\[\\#2e303a\\].rounded-lg.grid.grid-cols-4.sm\\:grid-cols-6.items-start');
+        await page.waitForSelector('.text-xs.h-fit-content');
 
         // Extract transaction data from the loaded trade elements
         const transactionData = await page.evaluate(() => {
-            const tradeElements = document.querySelectorAll('.text-xs.my-1.bg-\\[\\#2e303a\\].rounded-lg.grid.grid-cols-4.sm\\:grid-cols-6.items-start');
+            const tradeElements = document.querySelectorAll('.text-xs.h-fit-content');
 
             return Array.from(tradeElements).map(trade => {
-                const accountElement = trade.querySelector('div:nth-child(1) a span.px-1');
+                const accountElement = trade.querySelector('td:nth-child(1) a span.px-1');
                 const account = accountElement ? accountElement.innerText.trim() : null;
 
-                const typeElement = trade.querySelector('div:nth-child(2)');
+                const typeElement = trade.querySelector('td:nth-child(2)');
                 const type = typeElement ? typeElement.innerText.trim() : null;
 
-                const solElement = trade.querySelector('div:nth-child(4)');
+                const solElement = trade.querySelector('td:nth-child(4)');
                 const sol = solElement ? solElement.innerText.trim() : null;
 
-                const angelElement = trade.querySelector('div:nth-child(5)');
+                const angelElement = trade.querySelector('td:nth-child(5)');
                 const angel = angelElement ? angelElement.innerText.trim() : null;
 
-                const dateElement = trade.querySelector('div:nth-child(6)');
+                const dateElement = trade.querySelector('td:nth-child(6)');
                 const date = dateElement ? dateElement.innerText.trim() : null;
 
-                const transactionElement = trade.querySelector('a');
+                const transactionElement = trade.querySelector('td:nth-child(7) a');
                 const transaction = transactionElement ? transactionElement.innerText.trim() : null;
 
                 return {
@@ -208,6 +208,7 @@ async function realTimeData(req, res) {
                 };
             });
         });
+
 
         let extractedValues = {
             Name: firstDivValues.archangels,
@@ -236,8 +237,6 @@ async function realTimeData(req, res) {
             ReplyData: replydata
         };
 
-        // Log the entire object
-        console.log(extractedValues);
 
         // Close the browser
         await browser.close();
